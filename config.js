@@ -3,7 +3,7 @@
 // ============================================================
 window.PROFILE = {
   name: "IDRAK",                    // nome grande no cartaz
-  tag: "@seunick",
+  tag: "@XxShadowK1ngxXD",
   epithet: "O Príncipe Amaldiçoado",  // "apelido" embaixo do nome, estilo One Piece
   avatar: "assets/avatar.webp",      // foto do cartaz; "" = mostra o edit ao vivo
   bounty: "3.000.000.000",           // recompensa em Berries
@@ -41,7 +41,7 @@ window.PROFILE = {
   sfx: ["ゴゴゴゴ", "ドン!", "バキッ!", "ドドド", "ズン!"],
 
   links: [
-    { platform: "discord", label: "Discord", handle: "seunick", url: "", copy: true },
-    { platform: "roblox", label: "Roblox", handle: "SeuNick", url: "https://www.roblox.com/users/1/profile" },
+    { platform: "discord", label: "Discord", handle: "Idrak", url: "https://discord.com/users/916169069814755358" },
+    { platform: "roblox", label: "Roblox", handle: "@XxShadowK1ngxXD", url: "https://www.roblox.com/users/4774215724/profile" },
   ],
 };
