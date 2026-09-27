@@ -56,7 +56,6 @@
           <canvas id="wave" width="120" height="34"></canvas>
           <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" aria-label="Volume" />
         </div>
-        <div class="yt"><div id="yt"></div></div>
 
         <div class="stamp">MARINE</div>
         <button class="flip-btn" data-flip aria-label="Virar o cartaz">↻ virar</button>
@@ -73,10 +72,12 @@
       </div>
       </div>
     </article>
+    <!-- player do YouTube: fora do cartaz (3D/zoom quebram o iframe); no PC o JS move ele para o HUD -->
+    <div class="yt" id="ytbox"><div id="yt"></div></div>
   </main>
 
   <!-- HUD do lado direito -->
-  <aside id="hud" aria-hidden="true">
+  <aside id="hud">
     <div class="hud-top">
       <p class="rec"><span class="dot"></span>REC <span id="tc">00:00:00:00</span></p>
       <h3 class="arc" id="arc"></h3>

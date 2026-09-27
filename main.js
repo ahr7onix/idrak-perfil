@@ -171,6 +171,15 @@ const video = $("bgvideo");
 video.src = P.video;
 video.play().catch(() => {});             // roda mudo o tempo todo
 
+// no PC o player fica no HUD (entre a ficha e a linha do tempo); no celular, embaixo do cartaz
+function placePlayer() {
+  const box = $("ytbox"), wide = innerWidth >= 1100;
+  if (wide && box.parentElement !== $("hud")) $("hud").insertBefore(box, document.querySelector("#hud .timeline"));
+  if (!wide && box.parentElement !== $("app")) $("app").appendChild(box);
+}
+placePlayer();
+addEventListener("resize", placePlayer);
+
 $("trk-title").textContent = P.music.title;
 $("trk-artist").textContent = P.music.artist;
 
