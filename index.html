@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WANTED</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Bangers&family=Special+Elite&family=Oswald:wght@500;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="config.js"></script>
+  <script type="importmap">
+    { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+  </script>
+</head>
+<body>
+  <!-- o vídeo vira textura do shader; se o WebGL falhar, ele aparece direto como fundo -->
+  <video id="bgvideo" playsinline muted loop preload="auto" crossorigin="anonymous"></video>
+  <canvas id="fx"></canvas>
+  <canvas id="cracks"></canvas>
+  <div id="cursor"><i></i></div>
+
+  <!-- créditos de abertura -->
+  <div id="titles" aria-hidden="true">
+    <p class="t1">procurado pela <span>marinha</span></p>
+    <h2 class="t2" id="t-name"></h2>
+    <p class="t3" id="t-epithet"></p>
+  </div>
+
+  <!-- Entrada: onomatopeia de mangá -->
+  <div id="enter">
+    <div class="sfx" aria-hidden="true"><span>ド</span><span>ン</span><span>!!</span></div>
+    <p class="enter-name" id="enter-name"></p>
+    <p class="enter-hint">toque para entrar</p>
+  </div>
+
+  <main id="app" class="hidden">
+    <div class="kanji" aria-hidden="true">ロキ</div>
+    <article class="poster" id="poster">
+      <div class="old-poster p1" aria-hidden="true"></div>
+      <div class="old-poster p2" aria-hidden="true"></div>
+      <div class="flipper" id="flipper">
+      <div class="poster-inner">
+        <h1 class="wanted">WANTED</h1>
+        <div class="photo"><div class="photo-img" id="photo"><canvas id="photo-live" width="320" height="320"></canvas></div></div>
+        <p class="dead-or-alive">DEAD <span>OR</span> ALIVE</p>
+        <h2 class="name" id="name"></h2>
+        <p class="epithet" id="epithet"></p>
+        <div class="bounty"><span class="berry">B</span><span id="bounty"></span><span class="dash">-</span></div>
+        <p class="bio" id="bio"></p>
+
+        <div class="links" id="links"></div>
+
+        <div class="player">
+          <button id="play" aria-label="Pausar/tocar">❚❚</button>
+          <canvas id="wave" width="300" height="34"></canvas>
+          <input id="volume" type="range" min="0" max="1" step="0.01" value="0.7" aria-label="Volume" />
+        </div>
+
+        <div class="stamp">MARINE</div>
+        <button class="flip-btn" data-flip aria-label="Virar o cartaz">↻ virar</button>
+      </div>
+      <div class="poster-inner back">
+        <h2 class="back-title">VERSO</h2>
+        <p class="back-quote" id="b-quote"></p>
+        <div class="back-block"><h3>TRIPULAÇÃO</h3><ul id="b-crew"></ul></div>
+        <div class="back-block"><h3>SONHO</h3><p id="b-dream"></p></div>
+        <div class="back-block"><h3>FAVORITOS</h3><p id="b-favs"></p></div>
+        <p class="signature" id="b-sign"></p>
+        <div class="stamp secret">CONFIDENCIAL</div>
+        <button class="flip-btn" data-flip aria-label="Voltar para a frente">↻ virar</button>
+      </div>
+      </div>
+    </article>
+  </main>
+
+  <!-- HUD do lado direito -->
+  <aside id="hud" aria-hidden="true">
+    <div class="hud-top">
+      <p class="rec"><span class="dot"></span>REC <span id="tc">00:00:00:00</span></p>
+      <h3 class="arc" id="arc"></h3>
+      <p class="arc-sub">ONE PIECE · FAN EDIT</p>
+    </div>
+    <section class="sheet">
+      <header><span>FICHA DE PIRATA</span><span class="sheet-id">Nº 0001</span></header>
+      <dl>
+        <dt>TRIPULAÇÃO</dt><dd id="s-crew"></dd>
+        <dt>FRUTA</dt><dd id="s-fruit"></dd>
+        <dt>STATUS</dt><dd id="s-status"></dd>
+      </dl>
+      <div id="stats"></div>
+    </section>
+    <div class="timeline">
+      <div class="tl-bar"><div class="tl-fill" id="tl-fill"></div><div class="tl-head" id="tl-head"></div></div>
+      <p><span id="tl-now">00:00</span><span id="tl-total">00:00</span></p>
+    </div>
+  </aside>
+  <div id="sfx-layer" aria-hidden="true"></div>
+
+  <div id="toast"></div>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
