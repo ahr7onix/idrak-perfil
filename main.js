@@ -51,12 +51,12 @@ const statFills = P.stats.map((st) => {
 });
 const fmt = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 function updateHud() {
-  if (!video.duration) return;
-  const k = video.currentTime / video.duration;
+  if (!songDur) return;
+  const k = songT / songDur;
   $("tl-fill").style.width = `${k * 100}%`;
   $("tl-head").style.left = `${k * 100}%`;
-  $("tl-now").textContent = fmt(video.currentTime);
-  $("tl-total").textContent = fmt(video.duration);
+  $("tl-now").textContent = fmt(songT);
+  $("tl-total").textContent = fmt(songDur);
   const f = Math.floor(performance.now() / (1000 / 24)) % 24;
   const s = Math.floor(performance.now() / 1000);
   $("tc").textContent = `00:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}:${String(f).padStart(2, "0")}`;
@@ -165,27 +165,36 @@ poster.addEventListener("mousemove", (e) => {
 poster.addEventListener("mouseleave", () => { poster.style.transform = ""; });
 
 /* ============================================================
-   Vídeo + áudio (o som do edit é a música do site)
+   Vídeo de fundo (mudo) + música pelo player do YouTube
    ============================================================ */
 const video = $("bgvideo");
 video.src = P.video;
-video.play().catch(() => {});             // já roda mudo atrás da tela de entrada
+video.play().catch(() => {});             // roda mudo o tempo todo
 
-let actx, analyser, gain, freq, wave;
-function initAudio() {
-  actx = new (window.AudioContext || window.webkitAudioContext)();
-  const src = actx.createMediaElementSource(video);
-  analyser = actx.createAnalyser();
-  analyser.fftSize = 512;
-  analyser.smoothingTimeConstant = 0.6;
-  gain = actx.createGain();
-  gain.gain.value = +$("volume").value;
-  src.connect(analyser);
-  analyser.connect(gain);
-  gain.connect(actx.destination);
-  freq = new Uint8Array(analyser.frequencyBinCount);
-  wave = new Uint8Array(analyser.fftSize);
-}
+$("trk-title").textContent = P.music.title;
+$("trk-artist").textContent = P.music.artist;
+
+let yt, ytReady = false, wantPlay = false, playing = false, songT = 0, songDur = 0;
+window.onYouTubeIframeAPIReady = () => {
+  yt = new YT.Player("yt", {
+    videoId: P.music.youtube,
+    playerVars: { playsinline: 1, loop: 1, playlist: P.music.youtube, rel: 0, controls: 1 },
+    events: {
+      onReady: () => {
+        ytReady = true;
+        yt.setVolume(+$("volume").value * 100);
+        if (wantPlay) yt.playVideo();
+      },
+      onStateChange: (e) => {
+        playing = e.data === YT.PlayerState.PLAYING;
+        $("play").textContent = playing ? "❚❚" : "▶";
+      },
+    },
+  });
+};
+const ytScript = document.createElement("script");
+ytScript.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(ytScript);
 
 $("enter").addEventListener("click", () => {
   $("enter").classList.add("gone");
@@ -198,30 +207,33 @@ $("enter").addEventListener("click", () => {
     statFills.forEach((st) => (st.fill.style.width = `${st.value}%`));
     setTimeout(() => document.body.classList.add("stats-on"), 1500);
   }, 5600);
-  initAudio();
   video.currentTime = 0;
-  video.muted = false;
   video.play().catch(() => {});
+  wantPlay = true;
+  if (ytReady) yt.playVideo();
   kick = 1;
 }, { once: true });
 
 $("play").addEventListener("click", () => {
-  if (video.paused) { video.play(); actx?.resume(); $("play").textContent = "❚❚"; }
-  else { video.pause(); $("play").textContent = "▶"; }
+  if (!ytReady) return;
+  playing ? yt.pauseVideo() : yt.playVideo();
 });
-$("volume").addEventListener("input", (e) => { if (gain) gain.gain.value = +e.target.value; });
+$("volume").addEventListener("input", (e) => { if (ytReady) yt.setVolume(+e.target.value * 100); });
 
-// Detector de batida: energia do grave comparada com a média recente
-let bass = 0, bassAvg = 0, beat = 0, kick = 0, lastKick = 0;
-function readAudio(t) {
-  if (!analyser || video.paused) { beat *= 0.9; return; }
-  analyser.getByteFrequencyData(freq);
-  let b = 0;
-  for (let i = 1; i < 10; i++) b += freq[i];
-  bass = b / (9 * 255);
-  bassAvg += (bass - bassAvg) * 0.04;
-  if (bass > bassAvg * 1.25 && bass > 0.45 && t - lastKick > 0.18) { kick = Math.min(1, (bass - bassAvg) * 4); lastKick = t; }
-  beat += (bass - beat) * 0.3;
+// Batida: o YouTube não deixa ler o áudio, então os efeitos seguem um relógio no BPM da música,
+// preso ao tempo do player (pausou, parou; pulou, acompanha)
+const beatLen = 60 / P.music.bpm;
+let beat = 0, kick = 0, lastBeatN = -1;
+function readAudio() {
+  if (!ytReady || !playing) { beat *= 0.9; return; }
+  songT = yt.getCurrentTime() || 0;
+  songDur = yt.getDuration() || 0;
+  const n = Math.floor(songT / beatLen), ph = (songT % beatLen) / beatLen;
+  if (n !== lastBeatN) {
+    if (lastBeatN >= 0) kick = Math.max(kick, n % 4 === 0 ? 1 : n % 2 === 0 ? 0.75 : 0.5);
+    lastBeatN = n;
+  }
+  beat = 0.55 * Math.exp(-ph * 4);
 }
 
 // Cor média do vídeo (8x8 px) -> ilumina o cartaz com a luz da cena
@@ -242,21 +254,17 @@ setInterval(() => {
   root.style.setProperty("--amb", amb.map((v) => Math.round(Math.min(255, v))).join(", "));
 }, 120);
 
-// forma de onda no player
+// barrinhas no player pulsando na batida
 const wctx = $("wave").getContext("2d");
 function drawWave() {
-  const W = 300, H = 34;
+  const W = 120, H = 34, n = 16, t = performance.now() / 1000;
   wctx.clearRect(0, 0, W, H);
-  wctx.strokeStyle = P.red;
-  wctx.lineWidth = 2;
-  wctx.beginPath();
-  if (analyser) analyser.getByteTimeDomainData(wave);
-  for (let i = 0; i < 100; i++) {
-    const v = analyser ? (wave[i * 5] - 128) / 128 : 0;
-    const x = (i / 99) * W, y = H / 2 + v * H * 0.45;
-    i ? wctx.lineTo(x, y) : wctx.moveTo(x, y);
+  wctx.fillStyle = P.red;
+  for (let i = 0; i < n; i++) {
+    const wob = 0.5 + 0.5 * Math.sin(i * 1.7 + t * 5) * Math.cos(i * 0.6 - t * 3);
+    const h = playing ? Math.max(3, H * (0.15 + (beat + kick * 0.5) * wob)) : 3;
+    wctx.fillRect(i * (W / n) + 1, (H - h) / 2, W / n - 3, Math.min(H, h));
   }
-  wctx.stroke();
 }
 
 /* ============================================================

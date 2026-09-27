@@ -9,8 +9,16 @@ window.PROFILE = {
   bounty: "3.000.000.000",           // recompensa em Berries
   bio: "Quando o céu fica vermelho, é o Haki do Rei.",
 
-  // Vídeo de fundo (o áudio dele vira a música do site)
+  // Vídeo de fundo (toca mudo, em loop)
   video: "assets/edit.mp4",
+
+  // Música: player do YouTube no cartaz; os efeitos batem no BPM dela
+  music: {
+    youtube: "KTZEcvTbDBc",
+    title: "MONTAGEM URANIUM (Super Slowed)",
+    artist: "ZAYLO",
+    bpm: 92,
+  },
 
   // Cores: vermelho do Haki, laranja do fogo, azul da neve
   red: "#e3172b",

@@ -179,8 +179,14 @@ body.gear5 .pop { color: #fff; text-shadow: 5px 5px 0 #000; }
 
 .player { display: flex; align-items: center; gap: 8px; margin-top: 12px; padding: 6px 8px; border: 2px solid var(--ink); }
 .player button { width: 34px; height: 34px; flex: none; border: 0; background: var(--red); color: #fff; font-size: .8rem; cursor: pointer; clip-path: polygon(10% 0, 100% 8%, 92% 100%, 0 90%); }
-#wave { flex: 1; min-width: 0; height: 30px; }
-#volume { width: 64px; accent-color: var(--red); }
+.track { flex: 1; min-width: 0; text-align: left; line-height: 1.15; }
+.track b { display: block; font: 500 .74rem "Oswald", sans-serif; letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track small { font-size: .66rem; opacity: .7; }
+#wave { width: 60px; height: 30px; flex: none; }
+#volume { width: 56px; accent-color: var(--red); }
+/* player do YouTube emoldurado como foto de jornal */
+.yt { margin: 8px 0 26px; padding: 5px; background: var(--ink); box-shadow: 3px 3px 0 var(--red); }
+.yt > div, .yt iframe { display: block; width: 100%; aspect-ratio: 16 / 9; height: auto; border: 0; }
 
 .stamp {
   position: absolute !important; right: 10px; top: 57%; transform: rotate(-18deg);
