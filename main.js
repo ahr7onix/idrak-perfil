@@ -216,8 +216,7 @@ $("enter").addEventListener("click", () => {
     statFills.forEach((st) => (st.fill.style.width = `${st.value}%`));
     setTimeout(() => document.body.classList.add("stats-on"), 1500);
   }, 5600);
-  video.currentTime = 0;
-  video.play().catch(() => {});
+  video.play().catch(() => {});             // sem voltar pro 0: o seek travava o vídeo no clique
   wantPlay = true;
   if (ytReady) yt.playVideo();
   kick = 1;
@@ -286,8 +285,22 @@ catch (e) { renderer = null; }
 
 if (renderer) {
   document.body.classList.add("webgl");
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  // resolução adaptativa: começa em 1x e baixa sozinha se o FPS cair (placa de vídeo integrada)
+  const maxPR = Math.min(devicePixelRatio, 1);
+  let pr = maxPR, fpsFrames = 0, fpsT0 = performance.now(), goodSecs = 0;
+  renderer.setPixelRatio(pr);
   renderer.setSize(innerWidth, innerHeight);
+  function adaptResolution() {
+    fpsFrames++;
+    const now = performance.now();
+    if (now - fpsT0 < 1000) return;
+    const fps = fpsFrames * 1000 / (now - fpsT0);
+    fpsFrames = 0; fpsT0 = now;
+    let next = pr;
+    if (fps < 45) { next = Math.max(0.5, pr * 0.8); goodSecs = 0; }
+    else if (fps > 57 && ++goodSecs >= 3) { next = Math.min(maxPR, pr * 1.15); goodSecs = 0; }
+    if (Math.abs(next - pr) > 0.01) { pr = next; renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight); }
+  }
   renderer.autoClear = false;
 
   const videoTex = new THREE.VideoTexture(video);
@@ -424,20 +437,20 @@ if (renderer) {
         col = mix(col, vec3(1.0), ray * smoothstep(0.3, 0.95, r) * clamp(uKick * 1.3, 0.0, 0.85));
 
         // ---- CINEMA ----
-        // brilho nas luzes fortes (bloom barato em 12 amostras) + flare anamórfico horizontal
+        // brilho nas luzes fortes (bloom barato em 6 amostras) + flare anamórfico horizontal
         vec3 glow = vec3(0.0);
-        for (int i = 0; i < 12; i++) {
-          float a = float(i) * 0.5236;
+        for (int i = 0; i < 6; i++) {
+          float a = float(i) * 1.0472;
           vec3 s = tex(uv + vec2(cos(a), sin(a)) * 0.008 * vec2(1.0 / aspect, 1.0));
           glow += max(s - 0.8, 0.0);
         }
-        col += glow / 12.0 * 0.9;
+        col += glow / 6.0 * 0.9;
         vec3 streak = vec3(0.0);
-        for (int i = -6; i <= 6; i++) {
-          vec3 s = tex(uv + vec2(float(i) * 0.018, 0.0));
-          streak += max(s - 0.8, 0.0) * (1.0 - abs(float(i)) / 7.0);
+        for (int i = -3; i <= 3; i++) {
+          vec3 s = tex(uv + vec2(float(i) * 0.036, 0.0));
+          streak += max(s - 0.8, 0.0) * (1.0 - abs(float(i)) / 4.0);
         }
-        col += vec3(0.35, 0.55, 1.0) * dot(streak, vec3(0.333)) * 0.35 * (1.0 + uKick);
+        col += vec3(0.35, 0.55, 1.0) * dot(streak, vec3(0.333)) * 0.7 * (1.0 + uKick);
 
         // curva de filme + teal nas sombras / laranja nas altas luzes
         col = (col * (2.51 * col + 0.03)) / (col * (2.43 * col + 0.59) + 0.14);      // ACES
@@ -524,6 +537,7 @@ if (renderer) {
   let last = 0;
   (function loop() {
     requestAnimationFrame(loop);
+    adaptResolution();
     const t = clock.getElapsedTime(), dt = Math.min(0.05, t - last); last = t;
     readAudio(t);
     kick *= Math.pow(0.02, dt);

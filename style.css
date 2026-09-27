@@ -85,7 +85,8 @@ main {
   position: relative; width: 100%; max-width: 380px; margin: auto;
   transform-style: preserve-3d; transition: transform .15s ease-out;
   animation: drop 1.1s 4.2s cubic-bezier(.2, 1.3, .4, 1) both;
-  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .75)) drop-shadow(0 0 calc(18px + var(--beat) * 40px) rgba(var(--amb), .55));
+  /* brilho fixo: um drop-shadow mudando a cada quadro com a batida pesava demais na GPU integrada */
+  filter: drop-shadow(0 30px 40px rgba(0, 0, 0, .75)) drop-shadow(0 0 26px rgba(var(--amb), .5));
 }
 @keyframes drop { from { transform: translateY(-120vh) rotate(-8deg); } }
 /* balança de leve, pendurado pela faca */
@@ -247,8 +248,7 @@ body.opened #hud { opacity: 1; }
 .sheet {
   background: linear-gradient(160deg, rgba(10, 6, 4, .72), rgba(20, 8, 6, .55));
   border: 1px solid rgba(243, 230, 204, .18); border-left: 3px solid var(--red);
-  backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-  padding: 14px 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5), 0 0 calc(var(--beat) * 30px) rgba(var(--amb), .35);
+  padding: 14px 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, .5);
   transform: skewY(-2deg);
 }
 .sheet header { display: flex; justify-content: space-between; font-size: .7rem; letter-spacing: .3em; color: var(--red); margin-bottom: 10px; }
