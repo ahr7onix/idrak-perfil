@@ -533,10 +533,30 @@ if (renderer) {
     camera.updateProjectionMatrix();
   });
 
+  // Vigia: com o YouTube decodificando junto, a GPU integrada às vezes para de entregar quadros
+  // (o JS segue livre, só o requestAnimationFrame some). Se isso acontecer, solta o vídeo do shader;
+  // na segunda vez, desliga o shader e mostra o edit direto, que é o modo que nunca travou.
+  let lastFrame = performance.now(), stalls = 0, fxOff = false;
+  setInterval(() => {
+    if (fxOff || document.hidden || performance.now() - lastFrame < 600) return;
+    stalls++;
+    pr = 0.5; renderer.setPixelRatio(pr); renderer.setSize(innerWidth, innerHeight);
+    if (stalls >= 2) {
+      fxOff = true;
+      document.body.classList.remove("webgl");
+      canvas.style.display = "none";
+      basicLoop();
+    }
+    video.pause();
+    setTimeout(() => video.play().catch(() => {}), 150);
+  }, 300);
+
   const clock = new THREE.Clock();
   let last = 0;
   (function loop() {
+    if (fxOff) return;
     requestAnimationFrame(loop);
+    lastFrame = performance.now();
     adaptResolution();
     const t = clock.getElapsedTime(), dt = Math.min(0.05, t - last); last = t;
     readAudio(t);
@@ -581,12 +601,18 @@ if (renderer) {
     renderer.render(scene, camera);
   })();
 } else {
-  // sem WebGL: só o vídeo normal por trás, e a batida ainda mexe no cartaz
+  basicLoop();
+}
+
+// sem shader: só o vídeo normal por trás; batida, HUD e onomatopeias continuam
+function basicLoop() {
   (function loop(t) {
     requestAnimationFrame(loop);
-    readAudio(t / 1000);
+    readAudio();
     kick *= 0.93;
     root.style.setProperty("--beat", (beat * 0.6 + kick * 0.6).toFixed(3));
     drawWave();
-  })(0);
+    updateHud();
+    maybePop(t / 1000);
+  })(performance.now());
 }

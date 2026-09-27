@@ -10,7 +10,7 @@ window.PROFILE = {
   bio: "Quando o céu fica vermelho, é o Haki do Rei.",
 
   // Vídeo de fundo (toca mudo, em loop)
-  video: "assets/edit.mp4",
+  video: "assets/edit-960.mp4",
 
   // Música: player do YouTube no cartaz; os efeitos batem no BPM dela
   music: {
